@@ -1,0 +1,273 @@
+﻿@page
+@model Aman_WebAPI.Pages.IndexModel
+
+@{ ViewData["Title"] = "Index";
+}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Books</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+
+<body style="background-size: cover; background-color:#f3d4bf">
+   
+
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <button class="btn btn-outline-dark " data-toggle="modal" style="background-color:burlywood" data-target="#addBooks"><b>Add Book</b></button>
+                </li>
+
+            </ul>
+
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row" id="allBooks">
+        </div>
+
+    </div>
+   
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        //varible for link
+        var url = 'api/Books';
+
+        $(document).ready(function () {
+            // Gets all Books
+            $.getJSON(url)
+                .done(function (data) {
+                    //creating a template for books
+                    $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
+                });
+        });
+
+        // function for getting books
+        function getAllBooks() {
+
+            $.getJSON(url)
+                .done(function (data) {
+
+                    $("#allBooks").text("");
+
+                    $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
+                });
+        }
+        //Adding Books with a function addBooks() with the on onclick function
+        //once you click in the ADD BOOKS button in the front end that will take you to here
+        function addBooks() {
+            var _bookname = $('#bookname').val();
+            var _author = $('#author').val();
+            var _ratings = parseInt(($('#ratings').val()), 10);
+            var _price = parseFloat($('#price').val());
+
+            // creating json object for table columns with a variable
+
+            var Book = {
+                bookName: _bookname,
+                author: _author,
+               ratings: _ratings,
+                price: _price
+            };
+
+            $.ajax({
+                //method of getting the datas.
+                type: "POST",
+                url: url,
+                data: JSON.stringify(Book),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                // If the fucntion work
+                $("#result").html("Books Successfully Added");
+                getAllBooks();
+            }).fail(function (jqXHR, textStatus) {
+                // if any erorr with function
+                $("#result").html(" error try again plz.");
+            });
+        }
+        //Updating Books with a function updateBook() with the onclick function
+        //once you clikc in the UPDATE button in the front end that will take you to here
+        function updateBook() {
+            var _bookname = $('#_bookname').val();
+            var _author = $('#_author').val();
+            var _ratings = parseInt(($('#_ratings').val()), 10);
+            var _bookprice = parseFloat($('#_bookPrice').val());
+
+            // creating json object table columns with a variable
+            var Book = {
+                bookID: parseInt($('#_id').val()),
+                bookName: _bookname,
+                author: _author,
+               ratings: _ratings,
+                price: _bookprice
+            };
+            //method of getting the datas.
+            $.ajax({
+                type: "PUT",
+                url: url + "/" + $('#_id').val(),
+                data: JSON.stringify(Book),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                // If the fucntion work
+                $("#resultUpdate").html(" Books Successfully Updated");
+                getAllBooks();
+            }).fail(function (jqXHR, textStatus) {
+                // if any erorr with function
+                $("#resultUpdate").html("error  try again plz");
+            });;
+        }
+        //Function of Deleting the book with the DELETE button
+        function remove(id) {
+            var yes = confirm("You want to delete this Book?");
+            if (yes) {
+                $.ajax({
+                    type: "DELETE",
+                    url: url + "/" + id,
+                }).done(function (response) {
+                    getAllBooks();
+                });
+            }
+        }
+        // Getting the details from add books to update frame
+        function getBookForUpdate(id) {
+
+            $.ajax({
+                type: "GET",
+                url: url + "/" + id,
+                contentType: "application/json"
+            }).done(function (response) {
+
+                $('#_id').val(response.bookID);
+                $('#_bookname').val(response.bookName);
+                $('#_author').val(response.author);
+                $('#_ratings').val(response.ratings);
+                $('#_bookPrice').val(response.price);
+
+            });
+        }
+    </script>
+    
+        <script id="BooksTemplate" type="text/x-jquery-tmpl">
+
+            <div class="col-lg-3" style="margin:10px;">
+                <div class="card card text-white bg-dark border-warning mb-3" style="width: 18rem; padding:20px">
+
+                    <div class="card-body">
+                        <h5 class="card-title">BookName: ${bookName}</h5>
+                        <p class="card-text">Author :  ${author}</p>
+                        <p class="card-text">Ratings: ${ratings}</p>
+                        <p class="card-text">Price : ${price}</p>
+
+                    </div>
+                    <span>
+                        <button class="btn btn-primary" onclick="getBookForUpdate('${bookID}')" data-toggle="modal" data-target="#updateBook">Update</button>
+                        <a href="#" class="btn btn-danger" onclick="remove('${bookID}')">Delete</a>
+                    </span>
+                </div>
+            </div>
+        </script>
+
+        <div class="modal" tabindex="-1" role="dialog" id="addBooks">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Book</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="model">Book Name</label>
+                                <input type="text" class="form-control" id="bookname" aria-describedby="modelHelp" placeholder="Write the Book Name">
+
+                            </div>
+                            <div class="form-group">
+                                <label for="model">Author</label>
+                                <input type="text" class="form-control" id="author" aria-describedby="makerHelp" placeholder="Write the Autor Name">
+
+                            </div>
+                            <div class="form-group">
+                                    <label for="model">Ratings</label>
+                                    <input type="number" class="form-control" id="ratings" aria-describedby="PriceHelp" placeholder="Ratings from 1 to 5">
+
+                                </div>
+                            <div class="form-group">
+                                <label for="model">Book Price</label>
+                                <input type="number" class="form-control" id="price" aria-describedby="PriceHelp" placeholder=" Write Book Price">
+                            </div>
+                            <div class="form-group" id="result">
+                            </div>
+                            <button type="button" onclick="addBooks()" class="btn btn-primary">Add Books</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" tabindex="-1" role="dialog" id="updateBook">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Book</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+
+                            <div class="form-group">
+
+                                <input type="hidden" class="form-control" id="_id" aria-describedby="emailHelp">
+
+                            </div>
+                            <div class="form-group">
+                                <label for="model">Book Name</label>
+                                <input type="text" class="form-control" id="_bookname" aria-describedby="modelHelp" placeholder="Write the Book Name">
+
+                            </div>
+                            <div class="form-group">
+                                <label for="model">Author</label>
+                                <input type="text" class="form-control" id="_author" aria-describedby="makerHelp" placeholder="Write the Autor Name">
+
+                            </div>
+                            <div class="form-group">
+                                    <label for="model">Ratings</label>
+                                    <input type="text" class="form-control" id="_ratings" aria-describedby="makerHelp" placeholder="Ratings from 1 to 5">
+
+                                </div>
+                            <div class="form-group">
+                                <label for="model">Book Price</label>
+                                <input type="number" class="form-control" id="_bookPrice" aria-describedby="PriceHelp" placeholder="Write Book Price">
+
+                            </div>
+
+
+                            <div class="form-group" id="resultUpdate">
+
+                            </div>
+                            <button type="button" onclick="updateBook()" class="btn btn-primary">Update Record</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</body>
+</html>
